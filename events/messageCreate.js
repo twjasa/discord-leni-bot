@@ -1,4 +1,10 @@
 const { Events } = require('discord.js');
+const { Configuration, OpenAIApi } = require('openai');
+
+const configuration = new Configuration({
+	apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -11,11 +17,12 @@ module.exports = {
 			return false;
 		}
 		return message.channel?.send('Thinking...').then(async (loadingMessage) => {
-			const res = await fetch(
-				'https://run.mocky.io/v3/7387588a-565e-46ba-b032-8e44f4189a2f?mocky-delay=2000ms',
-			);
-			const data = await res?.json();
-			loadingMessage?.edit(`Hello, ${data.response}!`);
+			const completion = await openai.createCompletion({
+				model: 'text-davinci-003',
+				prompt: message.content.slice(0, 23),
+			});
+			console.log('🔧 OpenAi', completion.data.choices);
+			loadingMessage?.edit(`Hello, ${completion.data.choices[0].text}!`);
 		});
 	},
 };
