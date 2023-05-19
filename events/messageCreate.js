@@ -12,17 +12,24 @@ module.exports = {
 			return false;
 		}
 
-		return message.channel?.send('🧠 Thinking...').then(async (loadingMessage) => {
-			try {
+		const loadingMessage = await message.channel?.send('🧠 Thinking...');
+		console.log(loadingMessage?.edit);
+		try {
+			console.log('🔧 question', message.content.slice(23));
+			const response = await getChatCompletion(message.content.slice(23));
+			console.log('🔧 OpenAi', response);
 
-				console.log('🔧 question', message.content.slice(23));
-				const response = await getChatCompletion(message.content.slice(23));
-				console.log('🔧 OpenAi', response);
+			if (response) {
 				loadingMessage?.edit(response);
 			}
-			catch (_) {
-				loadingMessage?.edit('😵‍💫 I can\'t response your question know');
+			else {
+				loadingMessage?.edit('😵‍💫 I can\'t response your question now');
 			}
-		});
+		}
+		catch (_) {
+			loadingMessage?.edit('😵‍💫 I can\'t response your question now');
+		}
+
+		return loadingMessage;
 	},
 };
