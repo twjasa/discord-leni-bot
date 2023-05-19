@@ -4,29 +4,22 @@ const getChatCompletion = require('../openAi');
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(message) {
+		const startMessage = message.content.slice(0, 23).trim();
 		console.log('🔧 message', message.content);
+
 		if (
-			!message.content.slice(0, 23).includes(`<@${process.env.clientId}`) &&
-      !message.content.slice(0, 23).includes(`<@&${process.env.mentionLeni}`)
+			![`<@${process.env.botId}>`, `<@&${process.env.mentionLeni}>`].includes(
+				startMessage,
+			)
 		) {
 			return false;
 		}
 
 		const loadingMessage = await message.channel?.send('🧠 Thinking...');
-		console.log(loadingMessage?.edit);
-		try {
-			console.log('🔧 question', message.content.slice(23));
-			const response = await getChatCompletion(message.content.slice(23));
-			console.log('🔧 OpenAi', response);
+		const response = await getChatCompletion(message.content.slice(23));
 
-			if (response) {
-				loadingMessage?.edit(response);
-			}
-			else {
-				loadingMessage?.edit('😵‍💫 I can\'t response your question now');
-			}
-		}
-		catch (_) {
+		loadingMessage?.edit(response || '🧠 Thinking...');
+		if (!response) {
 			loadingMessage?.edit('😵‍💫 I can\'t response your question now');
 		}
 
