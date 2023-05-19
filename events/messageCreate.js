@@ -1,10 +1,5 @@
 const { Events } = require('discord.js');
-const { Configuration, OpenAIApi } = require('openai');
-
-const configuration = new Configuration({
-	apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+const getChatCompletion = require('../openAi');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -16,13 +11,18 @@ module.exports = {
 		) {
 			return false;
 		}
-		return message.channel?.send('Thinking...').then(async (loadingMessage) => {
-			const completion = await openai.createCompletion({
-				model: 'text-davinci-003',
-				prompt: message.content.slice(0, 23),
-			});
-			console.log('🔧 OpenAi', completion.data.choices);
-			loadingMessage?.edit(`Hello, ${completion.data.choices[0].text}!`);
+
+		return message.channel?.send('🧠 Thinking...').then(async (loadingMessage) => {
+			try {
+
+				console.log('🔧 question', message.content.slice(23));
+				const response = await getChatCompletion(message.content.slice(23));
+				console.log('🔧 OpenAi', response);
+				loadingMessage?.edit(response);
+			}
+			catch (_) {
+				loadingMessage?.edit('😵‍💫 I can\'t response your question know');
+			}
 		});
 	},
 };
