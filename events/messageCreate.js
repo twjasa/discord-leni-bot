@@ -37,16 +37,10 @@ module.exports = {
 		await db.modify(message.author.tag, (user?.qty || 0) + 1);
 		const all = await db.getAll();
 
-		console.log('🔌  calls: ', user, all);
+		console.log('🔌  calls: ', user?.id, all);
 		loadingMessage?.edit(response || '🧠 Thinking...');
 		if (!response) {
-			loadingMessage?.edit(
-				`😵‍💫 I can't response your question now. ${
-					message.author.tag
-				} you have ${9 - (user?.qty || 0)} ${
-					(user?.qty || 0) === 1 ? 'questions' : 'questions'
-				} left`,
-			);
+			loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
 		}
 		db.close();
 		return loadingMessage;

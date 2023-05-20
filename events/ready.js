@@ -7,10 +7,9 @@ module.exports = {
 	once: true,
 	execute() {
 		console.log('Ready 🚀');
-		const scheduledMessage = new cron.CronJob('0 2 * * *', () => {
-			// This runs every day at 10:30:00, you can do anything you want
-			// const channel = client.channels.cache.get("903474270653534210");
-			// channel.send(eval(`hola cada 10 segundos`));
+		const scheduledMessage = new cron.CronJob(process.env.CRON_JOB_TIME, () => {
+			// const channel = client.channels.cache.get(process.env.channel_general);
+			// channel.send(eval(`Hi each 10 seg`));
 			db.dropTable()
 				.then(() => console.log('Table dropped'))
 				.catch((err) => console.log(err));
