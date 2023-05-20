@@ -28,7 +28,9 @@ module.exports = {
 			}
 
 			if (user?.qty >= 10) {
-				return loadingMessage?.edit(
+				loadingMessage.delete();
+				await db.close();
+				return message.channel.send(
 					`👽 Hi ${message.author.tag} you don't have questions left. Try again tomorrow.`,
 				);
 			}
@@ -41,16 +43,19 @@ module.exports = {
 			console.log('🐯 Ai response:', response);
 
 			console.log('🔌  calls: ', user?.id, all);
-			loadingMessage?.edit(response || '🧠 Thinking...');
+			loadingMessage.delete();
 			if (!response) {
-				loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
+				await db.close();
+				return message.channel.send('😵‍💫 I can\'t response your question now.');
 			}
+			await db.close();
+			return message.channel.send(response);
 		}
 		catch (error) {
 			console.log('  error: ', error);
-			loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
+			loadingMessage.delete();
+			await db.close();
+			return message.channel.send('😵‍💫 I can\'t response your question now.');
 		}
-		await db.close();
-		return loadingMessage;
 	},
 };
