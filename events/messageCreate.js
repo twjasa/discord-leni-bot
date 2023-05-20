@@ -29,33 +29,28 @@ module.exports = {
 
 			if (user?.qty >= 10) {
 				loadingMessage.delete();
-				await db.close();
-				return message.channel.send(
+				message.channel.send(
 					`👽 Hi ${message.author.tag} you don't have questions left. Try again tomorrow.`,
 				);
+				return db.close();
+
 			}
 
 			const response = await getChatCompletion(message.content.slice(23));
-
-			await db.modify(message.author.tag, (user?.qty || 0) + 1);
-			const all = await db.getAll();
-
-			console.log('🐯 Ai response:', response);
-
-			console.log('🔌  calls: ', user?.id, all);
 			loadingMessage.delete();
 			if (!response) {
-				await db.close();
-				return message.channel.send('😵‍💫 I can\'t response your question now.');
+				message.channel.send('😵‍💫 I can\'t response your question now.');
+				return db.close();
 			}
-			await db.close();
-			return message.channel.send(response);
+			await db.modify(message.author.tag, (user?.qty || 0) + 1);
+			message.channel.send(response);
+			return db.close();
 		}
 		catch (error) {
 			console.log('  error: ', error);
 			loadingMessage.delete();
-			await db.close();
-			return message.channel.send('😵‍💫 I can\'t response your question now.');
+			message.channel.send('😵‍💫 I can\'t response your question now.');
+			return db.close();
 		}
 	},
 };
