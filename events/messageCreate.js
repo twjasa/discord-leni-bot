@@ -42,8 +42,8 @@ module.exports = {
 				message.channel.send('😵‍💫 I can\'t response your question now.');
 				return db.close();
 			}
-			await db.modify(message.author.tag, (user?.qty || 0) + 1);
 			message.channel.send(response);
+			await db.modify(message.author.tag, (user?.qty || 0) + 1);
 			return db.close();
 		}
 		catch (error) {
