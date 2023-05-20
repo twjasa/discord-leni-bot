@@ -20,7 +20,7 @@ module.exports = {
 
 		const loadingMessage = await message.channel?.send('🧠 Thinking...');
 		try {
-			// db.open();
+			await db.open();
 			const user = await db.get(message.author.tag);
 
 			if (!user) {
@@ -38,16 +38,19 @@ module.exports = {
 			await db.modify(message.author.tag, (user?.qty || 0) + 1);
 			const all = await db.getAll();
 
+			console.log('🐯 Ai response:', response);
+
 			console.log('🔌  calls: ', user?.id, all);
 			loadingMessage?.edit(response || '🧠 Thinking...');
 			if (!response) {
 				loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
 			}
-			// db.close();
 		}
-		catch (_) {
+		catch (error) {
+			console.log('  error: ', error);
 			loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
 		}
+		await db.close();
 		return loadingMessage;
 	},
 };

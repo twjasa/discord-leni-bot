@@ -1,139 +1,98 @@
-const sqlite3 = require('sqlite3').verbose();
+const PouchDB = require('pouchdb');
 
 class Db {
-	constructor(dbName = ':memory:') {
-		this.dbName = dbName;
-		this.open();
-		this.db.run('CREATE TABLE IF NOT EXISTS products (id TEXT UNIQUE, qty INTEGER)');
+	constructor(path) {
+		this.path = path;
+		this.db = new PouchDB(this.path);
+		this.isOpen = true;
 	}
 
 	open() {
-		this.db = new sqlite3.Database(
-			this.dbName,
-			sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
-			(err) => {
-				if (err) {
-					console.error(err.message);
-				}
-				console.log('Connected to the SQlite database.');
-			},
-		);
+		if (!this.isOpen) {
+			this.db = new PouchDB(this.path);
+			this.isOpen = true;
+		}
+		return this.db.info();
 	}
-	getOrCreate(id, qty = 0) {
-		return new Promise((resolve, reject) => {
-			this.db.get('SELECT * FROM products WHERE id = ?', id, (err, row) => {
-				if (err) {
-					reject(err.message);
-				}
-				else if (row) {
-					resolve(row);
-				}
-				else {
-					this.modifyOrAdd(id, qty);
-					resolve({ id, qty });
-				}
-			});
+
+	close() {
+		return this.db.close().then(() => {
+			this.isOpen = false;
 		});
 	}
-	get(id) {
-		return new Promise((resolve, reject) => {
-			this.db.get('SELECT * FROM products WHERE id = ?', id, (err, row) => {
-				if (err) {
 
-					reject(err.message);
+	execute(action) {
+		if (!this.isOpen) {
+			this.open();
+		}
+		return action(this.db);
+	}
+
+	create(id, qty) {
+		return this.execute(db => {
+			const product = {
+				_id: id,
+				qty: qty,
+			};
+			return db.put(product);
+		});
+	}
+
+	get(id, qty) {
+		return this.execute(db => {
+			return db.get(id).catch(err => {
+				if (err.name === 'not_found') {
+					return this.create(id, qty);
 				}
 				else {
-					resolve(row);
+					throw err;
 				}
-
 			});
 		});
 	}
 
 	getAll() {
-		return new Promise((resolve, reject) => {
-			this.db.all('SELECT * FROM products', (err, rows) => {
-				if (err) {
-					reject(err.message);
-				}
-				else {
-					resolve(rows);
-				}
-			});
-		});
+		return this.execute(db => db.allDocs({ include_docs: true }));
 	}
-	create(id, qty) {
-		return new Promise((resolve, reject) => {
-			this.db.run('INSERT INTO products (id, qty) VALUES (?, ?)', [id, qty], function(err) {
-				if (err) {
-					reject(err.message);
-				}
-				else {
-					console.log('--------> created');
-					resolve({ id, qty });
-				}
+
+	modify(id, qty) {
+		return this.execute(db => {
+			return db.get(id).then(doc => {
+				doc.qty = qty;
+				return db.put(doc);
 			});
 		});
 	}
 
-	modify(id, qty) {
-		return new Promise((resolve, reject) => {
-			this.db.run('UPDATE products SET qty = ? WHERE id = ?', [qty, id], function(err) {
-				if (err) {
-					reject(err.message);
+	modifyOrCreate(id, qty) {
+		return this.execute(db => {
+			return db.get(id).then(doc => {
+				doc.qty = qty;
+				return db.put(doc);
+			}).catch(err => {
+				if (err.name === 'not_found') {
+					return this.create(id, qty);
 				}
 				else {
-					console.log('--------> modified');
-					resolve({ id, qty });
+					throw err;
 				}
-			});
-		});
-	}
-	modifyOrAdd(id, qty) {
-		return new Promise((resolve, reject) => {
-			this.db.run('INSERT OR REPLACE INTO products (id, qty) VALUES (?, ?)', [id, qty], function(err) {
-				if (err) {
-					reject(err.message);
-				}
-				resolve({ id, qty });
 			});
 		});
 	}
 
 	remove(id) {
-		return new Promise((resolve, reject) => {
-			this.db.run('DELETE FROM products WHERE id = ?', id, function(err) {
-				if (err) {
-					reject(err.message);
-				}
-				resolve(id);
+		return this.execute(db => {
+			return db.get(id).then(doc => {
+				return db.remove(doc);
 			});
 		});
 	}
 
 	dropTable() {
-		return new Promise((resolve, reject) => {
-			this.db.run('DROP TABLE IF EXISTS products', function(err) {
-				if (err) {
-					reject(err.message);
-				}
-				resolve();
-			});
-		});
-	}
-
-	close() {
-		const self = this;
-		this.db.close((err) => {
-			if (err) {
-				return console.error(err.message);
-			}
-			console.log('Closed the database connection.');
-			self.db = null;
+		return this.execute(db => db.destroy()).then(() => {
+			this.isOpen = false;
 		});
 	}
 }
 
-const db = new Db('./student-chat.db');
-// db.close();
-module.exports = db;
+module.exports = new Db('./DB/store');

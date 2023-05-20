@@ -17,6 +17,7 @@
     "dotenv": "^16.0.3",
     "nodemon": "^2.0.22",
     "openai": "^3.2.1",
+    "pouchdb": "^8.0.1",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
