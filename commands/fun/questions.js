@@ -43,7 +43,7 @@ module.exports = {
 			'Replies the questions left for today and the time left after rest',
 		),
 	async execute(interaction) {
-		db.open();
+		// db.open(); mitx#4227
 		const { user: interactionUser } = interaction;
 		const userName = `${interactionUser?.username}#${interactionUser?.discriminator}`;
 		const user = await db.get(userName);
@@ -59,6 +59,6 @@ module.exports = {
 ⏳ Next reset in:  ${calculateTimeRemaining()}.`,
 			ephemeral: true,
 		});
-		db.close();
+		// db.close();
 	},
 };

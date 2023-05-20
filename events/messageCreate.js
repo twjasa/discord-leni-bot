@@ -19,30 +19,35 @@ module.exports = {
 		console.log('🗣  mentioned: ', message.author.tag);
 
 		const loadingMessage = await message.channel?.send('🧠 Thinking...');
-		db.open();
-		const user = await db.get(message.author.tag);
+		try {
+			// db.open();
+			const user = await db.get(message.author.tag);
 
-		if (!user) {
-			await db.create(message.author.tag, 0);
+			if (!user) {
+				await db.create(message.author.tag, 0);
+			}
+
+			if (user?.qty >= 10) {
+				return loadingMessage?.edit(
+					`👽 Hi ${message.author.tag} you don't have questions left. Try again tomorrow.`,
+				);
+			}
+
+			const response = await getChatCompletion(message.content.slice(23));
+
+			await db.modify(message.author.tag, (user?.qty || 0) + 1);
+			const all = await db.getAll();
+
+			console.log('🔌  calls: ', user?.id, all);
+			loadingMessage?.edit(response || '🧠 Thinking...');
+			if (!response) {
+				loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
+			}
+			// db.close();
 		}
-
-		if (user?.qty >= 10) {
-			return loadingMessage?.edit(
-				`👽 Hi ${message.author.tag} you don't have questions left. Try again tomorrow.`,
-			);
-		}
-
-		const response = await getChatCompletion(message.content.slice(23));
-
-		await db.modify(message.author.tag, (user?.qty || 0) + 1);
-		const all = await db.getAll();
-
-		console.log('🔌  calls: ', user?.id, all);
-		loadingMessage?.edit(response || '🧠 Thinking...');
-		if (!response) {
+		catch (_) {
 			loadingMessage?.edit('😵‍💫 I can\'t response your question now.');
 		}
-		db.close();
 		return loadingMessage;
 	},
 };

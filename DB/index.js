@@ -135,5 +135,5 @@ class Db {
 }
 
 const db = new Db('./student-chat.db');
-db.close();
+// db.close();
 module.exports = db;
