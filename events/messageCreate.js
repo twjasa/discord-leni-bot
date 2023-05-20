@@ -1,6 +1,7 @@
 const { Events } = require('discord.js');
 const getChatCompletion = require('../openAi');
 const db = require('../DB');
+const { getQuestion, isAskingInAClassroom, isAskingLeni } = require('../utils/chat-utils.js');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -8,10 +9,7 @@ module.exports = {
 		const startMessage = message.content.slice(0, 23).trim();
 		console.log('🔧 message', message.content);
 
-		if (
-			![`<@${process.env.botId}>`, `<@&${process.env.mentionLeni}>`].includes(
-				startMessage,
-			)
+		if (!isAskingLeni(startMessage) || !isAskingInAClassroom()
 		) {
 			return false;
 		}
@@ -33,7 +31,8 @@ module.exports = {
 				);
 			}
 
-			const response = await getChatCompletion(message.content.slice(23));
+			const question = getQuestion(message);
+			const response = await getChatCompletion(question);
 
 			await db.modify(message.author.tag, (user?.qty || 0) + 1);
 			const all = await db.getAll();
