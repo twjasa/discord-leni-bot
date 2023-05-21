@@ -1,12 +1,12 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 const { Events } = require('discord.js');
-const getChatCompletion = require('../openAi');
+const { getChatCompletion } = require('../openAi');
 const db = require('../DB');
 
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(message) {
 		const startMessage = message.content.slice(0, 23).trim();
-		console.log('🔧 message', message.content);
 
 		if (
 			![`<@${process.env.botId}>`, `<@&${process.env.mentionLeni}>`].includes(
@@ -15,9 +15,56 @@ module.exports = {
 		) {
 			return false;
 		}
+		let messageToSend = [{ role: 'user', content: message.content.slice(23) }];
+		if (message.channel.type !== 0) {
+			const historyMessage = await message?.channel?.messages?.fetch();
+			const starterMessage = await message?.channel?.messages?.fetch(
+				message?.channel?.id,
+			);
 
-		console.log('🗣  mentioned: ', message.author.tag);
+			if (historyMessage) {
+				const history = historyMessage
+					.map(({ author, content }) => {
+						const role = [process.env.botId, process.env.mentionLeni].includes(
+							author?.id,
+						)
+							? 'assistant'
+							: 'user';
 
+						if (content === '') return { content: '' };
+						if (
+							role === 'user' &&
+              ![
+              	`<@${process.env.botId}>`,
+              	`<@&${process.env.mentionLeni}>`,
+              ].includes(content.slice(0, 23).trim())
+						) {
+							return { content: '' };
+						}
+
+						return {
+							role,
+							content: content
+								.replace(`<@${process.env.botId}>`, '')
+								.replace(`<@&${process.env.mentionLeni}>`, ''),
+						};
+					})
+					.filter(({ content }) => content !== '');
+
+				history.push({
+					role: [process.env.botId, process.env.mentionLeni].includes(
+						starterMessage.author?.id,
+					)
+						? 'assistant'
+						: 'user',
+					content: starterMessage.content,
+				});
+				// history.push({ role: 'user', content: message.content });
+
+				history.reverse();
+				messageToSend = history;
+			}
+		}
 		const loadingMessage = await message.channel?.send('🧠 Thinking...');
 		try {
 			await db.open();
@@ -26,17 +73,15 @@ module.exports = {
 			if (!user) {
 				await db.create(message.author.tag, 0);
 			}
-
 			if (user?.qty >= 10) {
 				loadingMessage.delete();
 				message.channel.send(
 					`👽 Hi ${message.author.tag} you don't have questions left. Try again tomorrow.`,
 				);
 				return db.close();
-
 			}
 
-			const response = await getChatCompletion(message.content.slice(23));
+			const response = await getChatCompletion(messageToSend);
 			loadingMessage.delete();
 			if (!response) {
 				message.channel.send('😵‍💫 I can\'t response your question now.');
