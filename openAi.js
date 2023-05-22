@@ -42,7 +42,7 @@ async function getChatCompletion(message) {
 		});
 
 		const json = await response.json();
-		return json.choices[0].message.content;
+		return json?.choices?.[0].message?.content;
 	}
 	catch (error) {
 		console.error('Error:', error.message);
