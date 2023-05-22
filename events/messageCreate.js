@@ -2,20 +2,21 @@
 const { Events } = require('discord.js');
 const { getChatCompletion } = require('../openAi');
 const db = require('../DB');
+const {
+	getQuestion,
+	isAskingInAClassroom,
+	isAskingLeni,
+} = require('../utils/chat-utils.js');
 
 module.exports = {
 	name: Events.MessageCreate,
 	async execute(message) {
 		const startMessage = message.content.slice(0, 23).trim();
-
-		if (
-			![`<@${process.env.botId}>`, `<@&${process.env.mentionLeni}>`].includes(
-				startMessage,
-			)
-		) {
+		const question = getQuestion(message);
+		if (!isAskingLeni(startMessage) || !isAskingInAClassroom()) {
 			return false;
 		}
-		let messageToSend = [{ role: 'user', content: message.content.slice(23) }];
+		let messageToSend = [{ role: 'user', content: question }];
 		if (message.channel.type !== 0) {
 			const historyMessage = await message?.channel?.messages?.fetch();
 			const starterMessage = await message?.channel?.messages?.fetch(
@@ -34,10 +35,7 @@ module.exports = {
 						if (content === '') return { content: '' };
 						if (
 							role === 'user' &&
-              ![
-              	`<@${process.env.botId}>`,
-              	`<@&${process.env.mentionLeni}>`,
-              ].includes(content.slice(0, 23).trim())
+              !isAskingLeni(content.slice(0, 23).trim())
 						) {
 							return { content: '' };
 						}
