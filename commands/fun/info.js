@@ -6,8 +6,11 @@ module.exports = {
 		.setName('information')
 		.setDescription('Replies with information that may be useful for you 🚀'),
 	async execute(interaction) {
-		await interaction.reply(`
+		await interaction.reply({
+			content: `
       LenioLabs_ bootcamp page: https://bootcamp.leniolabs.com/
-    `);
+    `,
+			ephemeral: true,
+		});
 	},
 };
