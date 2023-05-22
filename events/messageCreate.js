@@ -11,13 +11,10 @@ module.exports = {
 	name: Events.MessageCreate,
 	async execute(message) {
 		const startMessage = message.content.slice(0, 23).trim();
-		console.log('🔧 message', message.content);
 
 		if (!isAskingLeni(startMessage) || !isAskingInAClassroom()) {
 			return false;
 		}
-
-		console.log('🗣  mentioned: ', message.author.tag);
 
 		const loadingMessage = await message.channel?.send('🧠 Thinking...');
 		try {
