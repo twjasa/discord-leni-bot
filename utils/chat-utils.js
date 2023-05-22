@@ -6,8 +6,9 @@ function isAskingLeni(message) {
 
 // eslint-disable-next-line no-unused-vars
 function isAskingInForbiddenChannel(message) {
-	return process.env.FORBIDDEN_CHANNEL_IDS.includes(
-		message?.channelId,
+	return (
+		process.env.FORBIDDEN_CHANNEL_IDS.includes(message?.channelId) ||
+    process.env.FORBIDDEN_CHANNEL_IDS.includes(message?.channel?.parentId)
 	);
 	// if (!process.env.CLASSROOM_IDS) {
 	// 	return false;
