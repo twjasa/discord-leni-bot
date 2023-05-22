@@ -5,8 +5,8 @@ function isAskingLeni(message) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function isAskingInAClassroom(message) {
-	return process.env.CLASSROOM_IDS.includes(
+function isAskingInForbiddenChannel(message) {
+	return process.env.FORBIDDEN_CHANNEL_IDS.includes(
 		message?.channelId,
 	);
 	// if (!process.env.CLASSROOM_IDS) {
@@ -21,6 +21,6 @@ function getQuestion(message) {
 
 module.exports = {
 	isAskingLeni,
-	isAskingInAClassroom,
+	isAskingInForbiddenChannel,
 	getQuestion,
 };
