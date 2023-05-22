@@ -13,7 +13,7 @@ module.exports = {
 	async execute(message) {
 		const startMessage = message.content.slice(0, 23).trim();
 		const question = getQuestion(message);
-		if (!isAskingLeni(startMessage) || !isAskingInAClassroom()) {
+		if (!isAskingLeni(startMessage) || !isAskingInAClassroom(message)) {
 			return false;
 		}
 		let messageToSend = [{ role: 'user', content: question }];

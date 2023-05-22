@@ -7,7 +7,9 @@ function isAskingLeni(message) {
 // TODO: Once we have classrooms id we can put them in the .env file and use it here
 // eslint-disable-next-line no-unused-vars
 function isAskingInAClassroom(message) {
-	return true;
+	return process.env.CLASSROOM_IDS.includes(
+		message?.channelId,
+	);
 }
 
 function getQuestion(message) {
@@ -19,4 +21,3 @@ module.exports = {
 	isAskingInAClassroom,
 	getQuestion,
 };
-
