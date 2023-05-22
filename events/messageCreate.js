@@ -19,7 +19,7 @@ module.exports = {
 		}
 		if (!isAskingInAClassroom(message)) {
 			return message.channel?.send(
-				'I\'m sorry but you can only ask to Leni on you class room channel. 👽',
+				'Please direct your questions to the classroom channel exclusively. Thank you. 👽',
 			);
 		}
 		let messageToSend = [{ role: 'user', content: question }];
