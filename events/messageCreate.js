@@ -4,7 +4,7 @@ const { getChatCompletion } = require('../openAi');
 const db = require('../DB');
 const {
 	getQuestion,
-	isAskingInAClassroom,
+	isAskingInForbiddenChannel,
 	isAskingLeni,
 } = require('../utils/chat-utils.js');
 
@@ -13,11 +13,14 @@ module.exports = {
 	async execute(message) {
 		const startMessage = message.content.slice(0, 23).trim();
 		const question = getQuestion(message);
+
 		if (!isAskingLeni(startMessage)) {
 			return false;
 		}
-		if (!isAskingInAClassroom(message)) {
-			message.channel?.send('I\'m sorry but you can only ask to Leni on you class room channel. 👽');
+		if (isAskingInForbiddenChannel(message)) {
+			return message.channel?.send(
+				'Please direct your questions to the classroom channel exclusively. Thank you. 👽',
+			);
 		}
 		let messageToSend = [{ role: 'user', content: question }];
 		if (message.channel.type !== 0) {
@@ -36,10 +39,7 @@ module.exports = {
 							: 'user';
 
 						if (content === '') return { content: '' };
-						if (
-							role === 'user' &&
-              !isAskingLeni(content.slice(0, 23).trim())
-						) {
+						if (role === 'user' && !isAskingLeni(content.slice(0, 23).trim())) {
 							return { content: '' };
 						}
 

@@ -5,8 +5,11 @@ function isAskingLeni(message) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function isAskingInAClassroom(message) {
-	return true;
+function isAskingInForbiddenChannel(message) {
+	return (
+		process.env.FORBIDDEN_CHANNEL_IDS.includes(message?.channelId) ||
+    process.env.FORBIDDEN_CHANNEL_IDS.includes(message?.channel?.parentId)
+	);
 	// if (!process.env.CLASSROOM_IDS) {
 	// 	return false;
 	// }
@@ -19,7 +22,6 @@ function getQuestion(message) {
 
 module.exports = {
 	isAskingLeni,
-	isAskingInAClassroom,
+	isAskingInForbiddenChannel,
 	getQuestion,
 };
-
